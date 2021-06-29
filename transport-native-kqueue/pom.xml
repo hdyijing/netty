@@ -401,7 +401,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>${tcnative.artifactId}</artifactId>
-      <classifier>${tcnative.classifier}</classifier>
+
       <scope>test</scope>
     </dependency>
   </dependencies>

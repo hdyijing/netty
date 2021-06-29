@@ -32,6 +32,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
 
 /**
+ * 继承自ScheduledExecutorService,相当于一个线程池
  * {@link MultithreadEventLoopGroup} implementations which is used for NIO {@link Selector} based {@link Channel}s.
  */
 public class NioEventLoopGroup extends MultithreadEventLoopGroup {
@@ -49,6 +50,7 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
      * {@link SelectorProvider} which is returned by {@link SelectorProvider#provider()}.
      */
     public NioEventLoopGroup(int nThreads) {
+        // nThreads:0
         this(nThreads, (Executor) null);
     }
 
@@ -69,6 +71,8 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
     }
 
     public NioEventLoopGroup(int nThreads, Executor executor) {
+        // nThreads:0,executor:null
+        // SelectorProvider.provider(),NIO包下的selector生产者
         this(nThreads, executor, SelectorProvider.provider());
     }
 
@@ -88,11 +92,14 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
 
     public NioEventLoopGroup(
             int nThreads, Executor executor, final SelectorProvider selectorProvider) {
+        // nThreads:0,executor:null,selectorProvider:SelectorProvider
         this(nThreads, executor, selectorProvider, DefaultSelectStrategyFactory.INSTANCE);
     }
 
     public NioEventLoopGroup(int nThreads, Executor executor, final SelectorProvider selectorProvider,
                              final SelectStrategyFactory selectStrategyFactory) {
+        // nThreads:0,executor:null,selectorProvider:SelectorProvider
+        // ,selectStrategyFactory:DefaultSelectStrategyFactory
         super(nThreads, executor, selectorProvider, selectStrategyFactory, RejectedExecutionHandlers.reject());
     }
 
@@ -141,7 +148,9 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
 
     @Override
     protected EventLoop newChild(Executor executor, Object... args) throws Exception {
+        // args.length == 3 --> false
         EventLoopTaskQueueFactory queueFactory = args.length == 4 ? (EventLoopTaskQueueFactory) args[3] : null;
+        // args[SelectorProvider,DefaultSelectStrategyFactory,RejectedExecutionHandler]
         return new NioEventLoop(this, executor, (SelectorProvider) args[0],
             ((SelectStrategyFactory) args[1]).newSelectStrategy(), (RejectedExecutionHandler) args[2], queueFactory);
     }

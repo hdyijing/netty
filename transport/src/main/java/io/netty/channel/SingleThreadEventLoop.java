@@ -59,6 +59,15 @@ public abstract class SingleThreadEventLoop extends SingleThreadEventExecutor im
         tailTasks = newTaskQueue(maxPendingTasks);
     }
 
+    /**
+     *
+     * @param parent NioEventLoopGroup
+     * @param executor null
+     * @param addTaskWakesUp false
+     * @param taskQueue
+     * @param tailTaskQueue
+     * @param rejectedExecutionHandler
+     */
     protected SingleThreadEventLoop(EventLoopGroup parent, Executor executor,
                                     boolean addTaskWakesUp, Queue<Runnable> taskQueue, Queue<Runnable> tailTaskQueue,
                                     RejectedExecutionHandler rejectedExecutionHandler) {

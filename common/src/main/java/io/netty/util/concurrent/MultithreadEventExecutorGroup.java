@@ -57,30 +57,35 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
      * @param args              arguments which will passed to each {@link #newChild(Executor, Object...)} call
      */
     protected MultithreadEventExecutorGroup(int nThreads, Executor executor, Object... args) {
+        //nThreads:CPU*2,executor:null
+        // ,args[SelectorProvider,DefaultSelectStrategyFactory,RejectedExecutionHandler]
         this(nThreads, executor, DefaultEventExecutorChooserFactory.INSTANCE, args);
     }
 
     /**
      * Create a new instance.
      *
-     * @param nThreads          the number of threads that will be used by this instance.
-     * @param executor          the Executor to use, or {@code null} if the default should be used.
-     * @param chooserFactory    the {@link EventExecutorChooserFactory} to use.
-     * @param args              arguments which will passed to each {@link #newChild(Executor, Object...)} call
+     * @param nThreads          线程数,cpu*2。
+     * @param executor          null
+     * @param chooserFactory    DefaultEventExecutorChooserFactory
+     * @param args              [SelectorProvider,DefaultSelectStrategyFactory,RejectedExecutionHandler]
      */
     protected MultithreadEventExecutorGroup(int nThreads, Executor executor,
                                             EventExecutorChooserFactory chooserFactory, Object... args) {
         checkPositive(nThreads, "nThreads");
 
+        // 线程创建工厂
         if (executor == null) {
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
 
+        // 创建线程数组
         children = new EventExecutor[nThreads];
 
         for (int i = 0; i < nThreads; i ++) {
             boolean success = false;
             try {
+                // 线程数组初始化(创建线程)
                 children[i] = newChild(executor, args);
                 success = true;
             } catch (Exception e) {
@@ -108,8 +113,10 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             }
         }
 
+        // DefaultEventExecutorChooserFactory.PowerOfTwoEventExecutorChooser
         chooser = chooserFactory.newChooser(children);
 
+        // 创建线程终止监听
         final FutureListener<Object> terminationListener = new FutureListener<Object>() {
             @Override
             public void operationComplete(Future<Object> future) throws Exception {
@@ -120,9 +127,11 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         };
 
         for (EventExecutor e: children) {
+            // 将每个线程注册到监听器
             e.terminationFuture().addListener(terminationListener);
         }
 
+        // 将线程池中的线程放到只读Set集合中
         Set<EventExecutor> childrenSet = new LinkedHashSet<EventExecutor>(children.length);
         Collections.addAll(childrenSet, children);
         readonlyChildren = Collections.unmodifiableSet(childrenSet);

@@ -132,6 +132,15 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     private int cancelledKeys;
     private boolean needsToSelectAgain;
 
+    /**
+     *
+     * @param parent    NioEventLoopGroup
+     * @param executor  ThreadPerTaskExecutor
+     * @param selectorProvider NioEventLoopGroup
+     * @param strategy DefaultSelectStrategyFactory
+     * @param rejectedExecutionHandler RejectedExecutionHandler
+     * @param queueFactory null
+     */
     NioEventLoop(NioEventLoopGroup parent, Executor executor, SelectorProvider selectorProvider,
                  SelectStrategy strategy, RejectedExecutionHandler rejectedExecutionHandler,
                  EventLoopTaskQueueFactory queueFactory) {
@@ -140,13 +149,20 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         this.provider = ObjectUtil.checkNotNull(selectorProvider, "selectorProvider");
         this.selectStrategy = ObjectUtil.checkNotNull(strategy, "selectStrategy");
         final SelectorTuple selectorTuple = openSelector();
+        // 保存选择器
         this.selector = selectorTuple.selector;
         this.unwrappedSelector = selectorTuple.unwrappedSelector;
     }
 
+    /**
+     * 创建任务队列,默认16个
+     * @param queueFactory null
+     * @return
+     */
     private static Queue<Runnable> newTaskQueue(
             EventLoopTaskQueueFactory queueFactory) {
         if (queueFactory == null) {
+            // 默认16个任务
             return newTaskQueue0(DEFAULT_MAX_PENDING_TASKS);
         }
         return queueFactory.newTaskQueue(DEFAULT_MAX_PENDING_TASKS);
@@ -170,6 +186,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     private SelectorTuple openSelector() {
         final Selector unwrappedSelector;
         try {
+            // 打开选择器,相当于SelectorProvider.provider().openSelector()
             unwrappedSelector = provider.openSelector();
         } catch (IOException e) {
             throw new ChannelException("failed to open a new selector", e);
